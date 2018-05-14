@@ -1,0 +1,19 @@
+carpetas:
+	todo minuscula, sneak case    ("la_carpeta")
+
+clases:
+	iniciales mayusculas, camel case ("LaClase")
+
+nombres de variables y metodos:
+	sneak case 
+
+
+shaders:
+	uniforms:
+		guion bajo inicial, camel case ("_ElUniform")
+
+	varyings:
+		'v' inicial, came case ("vBaseColor")
+
+	variables locales y metodos:
+		sneak case

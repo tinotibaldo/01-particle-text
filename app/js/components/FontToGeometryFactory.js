@@ -8,16 +8,13 @@ class FontToGeometryFactory
     constructor(config = {}) {
     	this.loader = new THREE.FontLoader();
 
-
     	// excecuted when textures are ready
         this.ready = false;
         this.waiting_calls = [];
-        //this.load_fonts()
 	}
 
 
 	load_fonts(path) {
-        console.log(path)
 		const context = this;
 		this.loader.load( path, function ( font ) {
 			context.font = font;
@@ -35,8 +32,8 @@ class FontToGeometryFactory
             }
         }
     }
-    // {text, size, callback, debug}
 	create_geometry(args) {
+    // args should be {text, size, callback, debug}
     // we need to load every single png files before actually being able to draw one of them
     // we stock the calls into waiting_texture array
     	if (! this.ready) {

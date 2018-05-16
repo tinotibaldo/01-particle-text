@@ -3,32 +3,17 @@ import DEBUG from 'js/core/Debug';
 import fontToGeometryFactory from 'js/components/FontToGeometryFactory';
 
 // create text from extruding a shape created from a json text
-export default class ExtrudeText extends Text
+export default class PointsMesh extends Text
 {
     constructor(config = {}) { 
         super()
 
 
-        this.material   = [
-                new THREE.MeshPhongMaterial( {
-                flatShading : true,
-                color     : 0xda6746,
-                emissive  : 0xc34752,
-                specular  : 0x0000ff,
-                shininess : 90,
-            }),
-                new THREE.MeshPhongMaterial( {
-                flatShading : true,
-                color     : 0xeedcce,
-                emissive  : 0x887a72,
-                specular  : 0xffffff,
-                shininess : 30,
-            })
-        ];
+        this.material = new THREE.PointsMaterial( { color: 0x888888 } );
         this.geometry = new THREE.BufferGeometry();
         this.text_object = new THREE.Mesh( this.geometry , this.material);
         this.add(this.text_object)
-        this.set_text(config)
+        this.set_text(config);
     }
 
     set_text(config) {
@@ -52,30 +37,17 @@ export default class ExtrudeText extends Text
             bevelSegments  :    config.extrude.bevelSegments  || 1,
         };
 
-        if (config.front) {
+        if (config) {
             // using given material
-            if(config.front.material) {
-                this.material[0] = config.front.material;
+            if(config.material) {
+                this.material = config.material;
             } else {
-                this.material[0].color.set(     config.front.color     || 0xda6746);
-                this.material[0].emissive.set(  config.front.emissive  || 0x0000ff);
-                this.material[0].specular.set(  config.front.specular  || 0xc34752);
-                this.material[0].shininess = (  config.front.shininess || 90);
-                this.material[0].opacity =   (  config.front.opacity || config.front.opacity === 0 ? config.front.opacity : 1);
-                this.material[0].transparent=(  this.material[0].opacity < 1 ? true : false);
-            }
-        }
-
-        if (config.sides) {
-            if(config.sides.material) {
-                this.material[1] = config.sides.material;
-            } else {
-                this.material[1].color.set(     config.sides.color     || 0xeedcce);
-                this.material[1].emissive.set(  config.sides.emissive  || 0x887a72);
-                this.material[1].specular.set(  config.sides.specular  || 0xffffff);
-                this.material[1].shininess = (  config.sides.shininess || 30);
-                this.material[1].opacity =   (  config.sides.opacity || config.sides.opacity === 0 ? config.sides.opacity : 1);
-                this.material[1].transparent=(  this.material[1].opacity < 1 ? true : false);
+                this.material.color.set( config.color || 0xda6746);
+                this.material.size = ( config.point_size || 1  );
+                this.material.lights = ( config.lights || false )
+                this.material.sizeAttenuation = ( config.sizeAttenuation || false )
+                this.material.opacity = (  config.opacity || config.opacity === 0 ? config.opacity : 1);
+                this.material.transparent=(  this.material.opacity < 1 ? true : false);
             }
         }
 
@@ -97,10 +69,59 @@ export default class ExtrudeText extends Text
 
                 context.geometry.translate( xMid, yMid, zMid );
 
+                context.create_shapes(context.geometry.attributes.position.array);
                 // we only change the geometry of the 3d object to save up memory
-                context.text_object.geometry = context.geometry;
+                //context.text_object.geometry = context.geometry;
             }
         });
+    }
+
+    get_points() {
+
+    }
+
+    create_shapes(points, size) {
+        let attributes;
+
+        if(points[0] instanceof THREE.Vector3) {
+            attributes = [];
+            var i = points.length;
+            while (i--) {
+                attributes.push(points.x, points.y, points.z);
+            }
+        } else {
+            attributes = points;
+        }
+        //console.
+        var geometry = new THREE.PlaneBufferGeometry( 2, 2, 1, 1 );
+        var i = attributes.length/3;
+
+        const post_length = geometry.attributes.position.array.length/3;
+        const extranded_attributes = new Float32Array(post_length * i * 3)
+
+        while (i--) {
+            //console.log(i)
+            for(let j = 0 ; j < post_length; j++) {
+                if(i == 0)
+                    console.log(geometry.attributes.position.array[j * 3])
+                extranded_attributes[i * 3 * 4 + j * 3 ] = (geometry.attributes.position.array[j * 3] + attributes[i * 3]);
+                extranded_attributes[i * 3 * 4 + j * 3 + 1] = (geometry.attributes.position.array[j * 3 + 1] + attributes[i * 3 + 1]);
+                extranded_attributes[i * 3 * 4 + j * 3 + 2] = (geometry.attributes.position.array[j * 3 + 2] + attributes[i * 3 + 2]);
+            }
+
+            if(this.text_object.geometry.attributes.position)
+            this.text_object.geometry.attributes.position.needsUpdate = true;
+
+        }
+        
+        this.text_object.geometry.addAttribute( 'position', new THREE.BufferAttribute( extranded_attributes, 3 ) );
+        this.text_object.geometry.attributes.position.needsUpdate = true;
+        //context.text_object.geometry = context.geometry;
+        
+
+        //context.text_object.geometry.attributes.array = 
+        console.log(geometry);
+
     }
 
     update(TIME, camera) {

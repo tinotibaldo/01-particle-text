@@ -13,8 +13,12 @@ export default class Webgl {
     this._renderer.setPixelRatio(window.devicePixelRatio);
     this._renderer.setClearColor(0x2c272a);
     this.dom = this._renderer.domElement;
-
-
+    this._renderer.shadowMap.enabled = true;
+    this._renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+//this._renderer.shadowMap.renderReverseSided = true;
+    //this._renderer.shadowMap.renderReverseSided = false;
+    // According to Juan set renderer so that when opacity goes below 1 you don't have the z conflict on the faces.
+    this._renderer.sortObjects = false
 
     THREE.OrbitControls = require('three-orbit-controls')(THREE)
 

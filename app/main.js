@@ -20,15 +20,15 @@ loop.add(webgl.onUpdate);
 
 // ##
 // EXAMPLE LIGHT
-const light = new THREE.SpotLight( 0xffffff , 1 , 500 , Math.PI * 0.45);
+const light = new THREE.SpotLight( 0xD62FED , 1.2 , 800 , Math.PI * 0.45, 1);
 light.position.set(2, 8, 120);
 webgl.add(light);
 light.castShadow = true;            // default false
 var i = 0;
 loop.add(
 	() => {
-		light.position.y =  Math.sin(Math.PI * i++ * 0.001) * 5;
-		light.position.x =  Math.sin(Math.PI * i++ * 0.003) * 5;
+		light.position.y =  -Math.sin(Math.PI * i++ * 0.001) * 50;
+		light.position.x =  -Math.sin(Math.PI * i++ * 0.003) * 25;
 
 	})
 light.shadow.mapSize.width = 4096;  // default
@@ -42,66 +42,65 @@ light.shadow.camera.bottom = - 120;
 light.shadow.bias = -0.0001
 light.shadow.camera.fov = 100;
 
-const light2 = new THREE.SpotLight( 0xffff44 , 1 , 500 , Math.PI * 0.45);
-light2.position.set(20, 20, 120);
+const light2 = light.clone()
+light2.color.set(0xFFAF2E);
 webgl.add(light2);
-light2.castShadow = true;            // default false
 var i = 0;
 loop.add(
 	() => {
-		light2.position.y =  Math.sin(Math.PI * i++ * 0.0015) * 25;
+		light2.position.y =  Math.sin(Math.PI * i++ * 0.0015) * 50;
 		light2.position.x =  Math.sin(Math.PI * i++ * 0.0032) * 25;
 
 	})
-light2.shadow.mapSize.width = 4096;  // default
-light2.shadow.mapSize.height = 4096; // default
-light2.shadow.camera.near = 10;    // default
-light2.shadow.camera.far = 500;     // default
-light2.shadow.camera.right = 500;
-light2.shadow.camera.left = - 500;
-light2.shadow.camera.top	= 120;
-light2.shadow.camera.bottom = - 120;
-light2.shadow.bias = -0.0001
-light2.shadow.camera.fov = 100;
 
-var helper = new THREE.CameraHelper( light.shadow.camera );
-webgl.add( helper );
+//var helper = new THREE.CameraHelper( light.shadow.camera );
+//webgl.add( helper );
 
-const light3 = new THREE.AmbientLight(0x111122);
+const light3 = new THREE.AmbientLight(0x020101);
 webgl.add(light3);
 
-
-var plane = new THREE.Mesh(new THREE.BoxBufferGeometry(1000,500, 1, 1, 1), new THREE.MeshPhongMaterial({color : 0xaaaaaa}))
+var plane = new THREE.Mesh(new THREE.BoxBufferGeometry(1200,500, 1, 1, 1), new THREE.MeshPhongMaterial({color : 0x229FBF,
+emissive : 0x030101}))
 webgl.add(plane)
-plane.position.z = -50;
+plane.position.z = -120;
 plane.receiveShadow = true; //default
 
-const geometry = new THREE.BoxBufferGeometry(1, 1,1,1,1,1)
 
-
-
-
+//var geometry = new THREE.SphereBufferGeometry( 5, 16, 16 );
+var geometry = new THREE.BoxBufferGeometry( 1.3, 1, 1, 1, 1, 1 );
+geometry.scale(0.3,0.3,0.3)
+geometry.rotateY(0.8)
+geometry.rotateZ(0.4)
+const geo2 = geometry.clone();
 const pointsPlanesText = new PointsPlanesText({
-	text : "P",
-	size: 200,
+	text : "oh OH",
+	size: 120,
 	debug : false,
-	point_size : 1,
-	lights : false,
-	sizeAttenuation : true,
-	opacity : 0.5,
 	extrude : {
-		amount : 10,
-		step : 2,
-		bevelThickness : 5,
+		amount : 20,
+		step : 1,
+		bevelThickness : 2,
 		bevel : true, bevelSize : 10, bevelSegments : 1
 	},
 	geometry
 });
 
 webgl.add(pointsPlanesText);
-pointsPlanesText.castShadow = true; //default is false
-pointsPlanesText.receiveShadow = true; //default
 
+//const cloned = pointsPlanesText.clone();
+//cloned.set_text({
+//	text : "si ZI",
+//	size: 120,
+//	debug : false,
+//	extrude : {
+//		amount : 20,
+//		step : 1,
+//		bevelThickness : 2,
+//		bevel : true, bevelSize : 10, bevelSegments : 1
+//	},
+//	geometry : geo2
+//})
+//cloned.position.y = -50;
 
 loop.add(() => {
 	pointsPlanesText.update(undefined, webgl.camera)
@@ -119,7 +118,7 @@ function onResize() {
 }
 
 const changeText = (a) => {
-	pointsPlanesText.set_text({text : a.srcElement.value, size: 120 * Math.random() + 20 -  a.srcElement.value.length * 2, extrude : {amount : 10}, geometry : geometry})
+	pointsPlanesText.set_text({text : a.srcElement.value, size: 90, extrude : {amount : 10}, geometry : geometry})
 }
 
 

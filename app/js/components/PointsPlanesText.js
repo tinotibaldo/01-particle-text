@@ -10,7 +10,19 @@ export default class PointsPlanesText extends Text
         super()
 
 
-        this.material = new THREE.MeshPhongMaterial( { color: 0x888888, side : THREE.DoubleSide, wireframe : false } );
+        this.material = new THREE.MeshPhongMaterial( {
+            color: 0xFFAF2E,
+            specular : 0xffffff,
+            emissive : 0x212122,
+            vertexColors: THREE.VertexColors,
+            shininess: 20,
+            bumpScale : 0.2,
+            //flatShading : true,
+            //side : THREE.DoubleSide,
+            //opacity : 0.
+            //map : (new THREE.TextureLoader()).load('525829239.jpg'),
+            bumpMap : (new THREE.TextureLoader()).load('525829239.jpg')
+        } );
         this.geometry = new THREE.BufferGeometry();
         this.text_object = new THREE.Mesh( this.geometry , this.material);
         this.add(this.text_object)
@@ -39,6 +51,7 @@ export default class PointsPlanesText extends Text
             bevelThickness :    config.extrude.bevelThickness || 5,
             bevelSize      :    config.extrude.bevelSize      || 5,
             bevelSegments  :    config.extrude.bevelSegments  || 1,
+            curveSegments  :    4
         };
 
         if ( context.geometry ){ 
@@ -57,7 +70,7 @@ export default class PointsPlanesText extends Text
                 const zMid = - 0.5 * (context.geometry.boundingBox.max.z - context.geometry.boundingBox.min.z );
 
                 context.geometry.translate( xMid, yMid, zMid );
-                geo = ms.sample(context.geometry , context.geometry.vertices.length);
+                const geo = ms.sample(context.geometry , 18000);
 
                 context.create_shapes(geo, config.geometry);
                 // we only change the geometry of the 3d object to save up memory
@@ -71,45 +84,27 @@ export default class PointsPlanesText extends Text
     }
 
     create_shapes(points, geometry) {
-        let attributes;
-
-        if(points[0] instanceof THREE.Vector3) {
-            attributes = [];
-            var i = points.length;
-            while (i--) {
-                attributes.push(points.x, points.y, points.z);
-            }
-        } else {
-            attributes = points;
-        }
-        //console.
-
-
-
+        let attributes = points ;
 
         var point_length = attributes.length /3;
 
         const post_length = geometry.attributes.position.array.length/3;
         const extranded_attributes = new Float32Array(post_length * point_length * 3)
-        //const normals = new Float32Array(post_length * i * 3)
+
         var indices = [];
         var normals = [];
         var uv = [];
         var colors = []
         var color = new THREE.Color();
-        console.log(geometry)
         for(let i = 0 ; i < point_length; i++) {
-            //console.log(i)
-            //const 
-            const scale = 0.5 * Math.random();
+            //set scale for individual geometries
+            const scale = 2 + Math.random() * 2;
             for(var j = 0 ; j < post_length; j++) {
-                //const scale = Math.random() * 1.0 + 0.3;
-
-                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 ] = (geometry.attributes.position.array[j * 3] + attributes[i * 3]);
-                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 + 1] = (geometry.attributes.position.array[j * 3 + 1] + attributes[i * 3 + 1] );
-                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 + 2] = (geometry.attributes.position.array[j * 3 + 2] + attributes[i * 3 + 2] );
+                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 ] =   ( scale * geometry.attributes.position.array[j * 3] + attributes[i * 3]);
+                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 + 1] =  ( scale * geometry.attributes.position.array[j * 3 + 1] + attributes[i * 3 + 1] );
+                extranded_attributes[i * 3 * geometry.attributes.position.count + j * 3 + 2] = ( scale * geometry.attributes.position.array[j * 3 + 2] + attributes[i * 3 + 2] );
             }
-
+            //copying geo data into points
             for (var j = 0; j < geometry.index.count; j++) {
                 indices.push(i * geometry.attributes.position.count + geometry.index.array[j])
             }
@@ -118,43 +113,19 @@ export default class PointsPlanesText extends Text
                 normals.push(geometry.attributes.normal.array[j])
             }
 
-            /*
-            normals.push( 0);
-            normals.push( 0);
-            normals.push( 1);
-
-            normals.push( 0);
-            normals.push( 0);
-            normals.push( 1);
-
-            normals.push( 0);
-            normals.push( 0);
-            normals.push( 1);
-
-            normals.push( 0);
-            normals.push( 0);
-            normals.push( 1);
-            //normals.push( 0, 0, 1 );
-                */
             for (var j = 0; j < geometry.attributes.uv.array.length; j++) {
                 uv.push(geometry.attributes.uv.array[j])
             }      
-            ///uv.push(0, 0);
-            ///uv.push(0, 1);
-            ///uv.push(1, 1);
-            ///uv.push(1, 0);
-            ///uv.push(0, 1);
-            ///uv.push(1, 1);
 
-            color.setHSL(Math.random(), 1.0, 0.6);
+            // generating vertex color
+            var rr = Math.random();
+                color.setHSL(rr , .95, 0.5);
 
-            colors.push( color.r, color.g, color.b );
-            colors.push( color.r + 0.1, color.g - 0.1, color.b - 0.1 );
-            colors.push( color.r + 0.15, color.g - 0.15, color.b + 0.25 );
-            colors.push( color.r + 0.2, color.g - 0.2, color.b - 0.2);
-
-
+            for (var j = 0; j < post_length; j++) {
+                colors.push( color.r , color.g, color.b );
+            }
         }
+
         this.text_object.geometry.setIndex( indices );
 
         this.text_object.geometry.addAttribute( 'uv', new THREE.Float32BufferAttribute( uv, 2 ) );
@@ -166,8 +137,7 @@ export default class PointsPlanesText extends Text
         this.text_object.geometry.attributes.position.needsUpdate = true;
         this.text_object.geometry.attributes.uv.needsUpdate = true;
         this.text_object.geometry.attributes.color.needsUpdate = true;
-        console.log(this.text_object.geometry)
-        //this.text_object.geometry.computeVertexNormals ();
+        this.text_object.geometry.computeVertexNormals ();
 
         this.text_object.geometry.computeBoundingSphere();
         this.text_object.geometry.computeBoundingBox();
@@ -180,17 +150,17 @@ export default class PointsPlanesText extends Text
 
     update(TIME, camera) {
         //this.lookAt(camera.position);
-        //if (this.text_object.geometry.attributes.position) {
-        //var i = this.text_object.geometry.attributes.position.array.length / 12;
-        //this.t++;
-        //while(i--) {
-        //    const r = Math.sin(i % 100 * this.t * 0.005) * 0.1
-        //    for (var j = 0 ; j < 12 ; j++) {
-        //        this.text_object.geometry.attributes.position.array[i * 12 +j] = this.text_object.geometry.attributes.position.array[i * 12 +j] + r; 
-        //    }
-        //}
-        //        this.text_object.geometry.attributes.position.needsUpdate = true;   
-        //}
+        if (this.text_object.geometry.attributes.position) {
+        var i = this.text_object.geometry.attributes.position.array.length / 12;
+        this.t++;
+        while(i--) {
+            const r = Math.sin(i % 100 * this.t * 0.005) * 0.1
+            for (var j = 0 ; j < 12 ; j++) {
+                this.text_object.geometry.attributes.position.array[i * 12 +j] = this.text_object.geometry.attributes.position.array[i * 12 +j] + r; 
+            }
+        }
+                this.text_object.geometry.attributes.position.needsUpdate = true;   
+        }
         ////this method update the text, as the first parameters will receive the time. See core/TIME module
     }
 

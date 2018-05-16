@@ -83,16 +83,8 @@ export default class PointsMesh extends Text
     create_shapes(points, size) {
         let attributes;
 
-        if(points[0] instanceof THREE.Vector3) {
-            attributes = [];
-            var i = points.length;
-            while (i--) {
-                attributes.push(points.x, points.y, points.z);
-            }
-        } else {
-            attributes = points;
-        }
-        //console.
+        attributes = points;
+        
         var geometry = new THREE.PlaneBufferGeometry( 2, 2, 1, 1 );
         var i = attributes.length/3;
 
@@ -102,8 +94,6 @@ export default class PointsMesh extends Text
         while (i--) {
             //console.log(i)
             for(let j = 0 ; j < post_length; j++) {
-                if(i == 0)
-                    console.log(geometry.attributes.position.array[j * 3])
                 extranded_attributes[i * 3 * 4 + j * 3 ] = (geometry.attributes.position.array[j * 3] + attributes[i * 3]);
                 extranded_attributes[i * 3 * 4 + j * 3 + 1] = (geometry.attributes.position.array[j * 3 + 1] + attributes[i * 3 + 1]);
                 extranded_attributes[i * 3 * 4 + j * 3 + 2] = (geometry.attributes.position.array[j * 3 + 2] + attributes[i * 3 + 2]);
@@ -115,18 +105,14 @@ export default class PointsMesh extends Text
         }
         
         this.text_object.geometry.addAttribute( 'position', new THREE.BufferAttribute( extranded_attributes, 3 ) );
-        this.text_object.geometry.attributes.position.needsUpdate = true;
-        //context.text_object.geometry = context.geometry;
-        
+        this.text_object.geometry.attributes.position.needsUpdate = true;        
 
-        //context.text_object.geometry.attributes.array = 
         console.log(geometry);
 
     }
 
     update(TIME, camera) {
         this.lookAt(camera.position);
-        //this method update the text, as the first parameters will receive the time. See core/TIME module
     }
 
     get_size () {
